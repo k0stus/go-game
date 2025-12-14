@@ -1,0 +1,44 @@
+@startuml
+package domain.model {
+    class Game
+    class Board
+    class Move
+    enum Stone
+}
+
+package domain.rules {
+    interface Rule
+    class PlacementRule
+    class LibertyRule
+}
+
+package application {
+    class GameService
+    class GameSession
+    class GameFactory
+}
+
+package infrastructure.server {
+    class ServerApp
+    class ClientHandler
+}
+
+package infrastructure.network {
+    interface Message
+    class MoveMessage
+    class BoardMessage
+    class AssignColorMessage
+    class ErrorMessage
+}
+
+Game --> Board
+Game --> Rule
+Rule <|-- PlacementRule
+Rule <|-- LibertyRule
+
+GameService --> GameSession
+GameSession --> Game
+
+ClientHandler --> GameService
+ClientHandler --> Message
+@enduml

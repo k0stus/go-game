@@ -1,0 +1,14 @@
+@startuml
+participant Client
+participant ClientHandler
+participant GameService
+participant Game
+participant Board
+
+Client -> ClientHandler : MoveMessage(x,y)
+ClientHandler -> GameService : makeMove()
+GameService -> Game : applyMove()
+Game -> Board : placeStone()
+Board --> ClientHandler : board
+ClientHandler -> Client : BoardMessage
+@enduml

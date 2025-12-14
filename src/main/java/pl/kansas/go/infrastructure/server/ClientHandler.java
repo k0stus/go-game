@@ -1,6 +1,7 @@
 package pl.kansas.go.infrastructure.server;
 
 import pl.kansas.go.application.GameService;
+import pl.kansas.go.domain.exception.InvalidMoveException;
 import pl.kansas.go.domain.model.Move;
 import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.infrastructure.network.*;
@@ -18,8 +19,9 @@ public class ClientHandler implements Runnable {
     private final UUID gameId;
     private final ObjectOutputStream out;
     private final ObjectInputStream in;
-    private Stone playerStone;
     private final List<ClientHandler> clients;
+
+    private Stone playerStone;
 
     public ClientHandler(
             Socket socket,
@@ -49,42 +51,76 @@ public class ClientHandler implements Runnable {
                 Message msg = (Message) in.readObject();
 
                 if (msg instanceof MoveMessage moveMsg) {
-
-                    if (playerStone !=
-                            gameService.getGame(gameId).getCurrentPlayer()) {
-                        out.writeObject(
-                                new ErrorMessage("Nie twoja kolej")
-                        );
-                        out.flush();
-                        continue;
-                    }
-
-                    Move serverMove = new Move(
-                            moveMsg.getMove().getX(),
-                            moveMsg.getMove().getY(),
-                            playerStone
-                    );
-
-                    gameService.makeMove(gameId, serverMove);
-                    broadcastBoard();
+                    handleMove(moveMsg);
                 }
             }
         } catch (Exception e) {
-            System.out.println("Klient rozłączony");
+            System.out.println("Klient rozłączony: " + e.getMessage());
         }
     }
 
-    public void broadcastBoard() throws IOException {
-        var game = gameService.getGame(gameId);
+    private void handleMove(MoveMessage moveMsg) {
+        try {
+            if (playerStone != gameService
+                    .getGame(gameId)
+                    .getCurrentPlayer()) {
+                sendError("Nie twoja kolej");
+                sendBoard();   // 👈 KLUCZ
+                return;
+            }
 
-        BoardMessage boardMessage = new BoardMessage(
-                game.getBoard().copy(),   // SNAPSHOT
-                game.getCurrentPlayer()
-        );
+            Move move = new Move(
+                    moveMsg.getMove().getX(),
+                    moveMsg.getMove().getY(),
+                    playerStone
+            );
 
-        for (ClientHandler client : clients) {
-            client.out.writeObject(boardMessage);
-            client.out.flush();
+            gameService.makeMove(gameId, move);
+            broadcastBoard();
+
+        } catch (Exception e) {
+            sendError(e.getMessage());
+            sendBoard();       // 👈 KLUCZ
+        }
+    }
+
+    private void sendBoard() {
+        try {
+            var game = gameService.getGame(gameId);
+            out.writeObject(
+                    new BoardMessage(
+                            game.getBoard().copy(),
+                            game.getCurrentPlayer()
+                    )
+            );
+            out.flush();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void sendError(String message) {
+        try {
+            out.writeObject(new ErrorMessage(message));
+            out.flush();
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void broadcastBoard() {
+        try {
+            var game = gameService.getGame(gameId);
+
+            BoardMessage boardMessage = new BoardMessage(
+                    game.getBoard().copy(),
+                    game.getCurrentPlayer()
+            );
+
+            for (ClientHandler client : clients) {
+                client.out.writeObject(boardMessage);
+                client.out.flush();
+            }
+        } catch (Exception e) {
+            System.out.println("Błąd broadcastu: " + e.getMessage());
         }
     }
 }

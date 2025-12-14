@@ -1,0 +1,26 @@
+@startuml
+component Client {
+    [ClientApp]
+    [ConsoleUI]
+}
+
+component Server {
+    [ServerApp]
+    [ClientHandler]
+}
+
+component Application {
+    [GameService]
+    [GameFactory]
+}
+
+component Domain {
+    [Game]
+    [Board]
+    [Rules]
+}
+
+Client --> Server : TCP
+Server --> Application
+Application --> Domain
+@enduml

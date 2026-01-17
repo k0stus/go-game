@@ -35,7 +35,9 @@ public class GameController {
     }
 
     private void refresh() {
-        view.updateBoard(presenter.getBoardViewModel());
+        if (presenter.hasBoard()) {
+            view.updateBoard(presenter.getBoardViewModel());
+        }
         view.setStatus("Ruch gracza: " + presenter.getCurrentPlayer());
     }
 

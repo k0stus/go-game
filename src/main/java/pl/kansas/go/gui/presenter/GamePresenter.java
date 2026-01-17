@@ -28,5 +28,13 @@ public class GamePresenter {
     public Stone getCurrentPlayer() {
         return gateway.getMyStone();
     }
+
+    /**
+     * @return true, jeżeli stan planszy jest już dostępny
+     */
+    public boolean hasBoard() {
+        return gateway.getBoardViewModel() != null;
+    }
+
 }
 

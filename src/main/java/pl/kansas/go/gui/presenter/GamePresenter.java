@@ -1,14 +1,8 @@
 package pl.kansas.go.gui.presenter;
 
-import pl.kansas.go.application.GameService;
-import pl.kansas.go.client.ClientGameGateway;
-import pl.kansas.go.domain.exception.InvalidMoveException;
-import pl.kansas.go.domain.model.Board;
-import pl.kansas.go.domain.model.Move;
+import pl.kansas.go.infrastructure.gateway.GameGateway;
 import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.gui.dto.BoardViewModel;
-
-import java.util.UUID;
 
 /**
  * Presenter odpowiedzialny za komunikację pomiędzy warstwą GUI
@@ -17,21 +11,22 @@ import java.util.UUID;
  */
 public class GamePresenter {
 
-    private final ClientGameGateway client;
+    private final GameGateway gateway;
 
-    public GamePresenter(ClientGameGateway client) {
-        this.client = client;
-    }
-
-    public void makeMove(int x, int y) {
-        client.sendMove(x, y);
+    public GamePresenter(GameGateway gateway) {
+        this.gateway = gateway;
     }
 
     public BoardViewModel getBoardViewModel() {
-        return client.getBoard();
+        return gateway.getBoardViewModel();
+    }
+
+    public void makeMove(int x, int y) {
+        gateway.makeMove(x, y);
     }
 
     public Stone getCurrentPlayer() {
-        return client.getPlayerColor();
+        return gateway.getMyStone();
     }
 }
+

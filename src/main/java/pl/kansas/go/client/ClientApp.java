@@ -7,52 +7,68 @@ import pl.kansas.go.infrastructure.network.*;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.function.Consumer;
 
 public class ClientApp {
 
-    public static void main(String[] args) throws Exception {
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
 
-        Socket socket = new Socket("localhost", 5000);
+    private Consumer<BoardMessage> onBoard;
+    private Consumer<ErrorMessage> onError;
+    private Consumer<AssignColorMessage> onAssignColor;
 
-        ObjectOutputStream out =
-                new ObjectOutputStream(socket.getOutputStream());
+    public void connect(String host, int port) throws Exception {
+        Socket socket = new Socket(host, port);
+
+        out = new ObjectOutputStream(socket.getOutputStream());
         out.flush();
+        in = new ObjectInputStream(socket.getInputStream());
 
-        ObjectInputStream in =
-                new ObjectInputStream(socket.getInputStream());
+        Thread listener = new Thread(this::listen);
+        listener.setDaemon(true);
+        listener.start();
+    }
 
-        Scanner scanner = new Scanner(System.in);
-        Stone myStone = null;
+    private void listen() {
+        try {
+            while (true) {
+                Object msg = in.readObject();
 
-        while (true) {
-            Object msg = in.readObject();
+                if (msg instanceof BoardMessage bm && onBoard != null)
+                    onBoard.accept(bm);
 
-            if (msg instanceof AssignColorMessage colorMsg) {
-                myStone = colorMsg.getStone();
-                System.out.println("Twój kolor: " + myStone);
+                if (msg instanceof ErrorMessage em && onError != null)
+                    onError.accept(em);
+
+                if (msg instanceof AssignColorMessage ac && onAssignColor != null)
+                    onAssignColor.accept(ac);
             }
-
-            if (msg instanceof BoardMessage boardMsg) {
-                ConsoleUI.print(boardMsg.getBoard());
-
-                if (boardMsg.getCurrentPlayer() == myStone) {
-                    System.out.print("Ruch x y: ");
-                    int x = scanner.nextInt();
-                    int y = scanner.nextInt();
-
-                    out.writeObject(
-                            new MoveMessage(new Move(x, y, myStone))
-                    );
-                    out.flush();
-                } else {
-                    System.out.println("Czekaj na ruch przeciwnika...");
-                }
-            }
-
-            if (msg instanceof ErrorMessage err) {
-                System.out.println("Błąd: " + err.getMessage());
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    public void sendMove(Move move) {
+        try {
+            out.writeObject(new MoveMessage(move));
+            out.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /* ===== CALLBACKI ===== */
+
+    public void onBoard(Consumer<BoardMessage> c) {
+        this.onBoard = c;
+    }
+
+    public void onError(Consumer<ErrorMessage> c) {
+        this.onError = c;
+    }
+
+    public void onAssignColor(Consumer<AssignColorMessage> c) {
+        this.onAssignColor = c;
     }
 }

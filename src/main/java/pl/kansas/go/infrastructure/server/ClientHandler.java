@@ -65,7 +65,7 @@ public class ClientHandler implements Runnable {
                     .getGame(gameId)
                     .getCurrentPlayer()) {
                 sendError("Nie twoja kolej");
-                sendBoard();   // 👈 KLUCZ
+                sendBoard();
                 return;
             }
 
@@ -80,7 +80,8 @@ public class ClientHandler implements Runnable {
 
         } catch (Exception e) {
             sendError(e.getMessage());
-            sendBoard();       // 👈 KLUCZ
+            sendBoard();
+
         }
     }
 

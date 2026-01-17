@@ -120,7 +120,7 @@
               <archive>
                 <manifest>
                   <mainClass>
-                    pl.kansas.go.client.ClientApp
+                    pl.kansas.go.gui.GoApplication
                   </mainClass>
                 </manifest>
               </archive>

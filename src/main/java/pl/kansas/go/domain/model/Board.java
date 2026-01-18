@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Reprezentuje planszę do gry Go o określonym rozmiarze.
+ */
 public class Board implements Serializable {
 
     private final int size;
@@ -38,6 +41,12 @@ public class Board implements Serializable {
         grid[x][y] = null;
     }
 
+    /**
+     * Zwraca listę współrzędnych sąsiednich pól dla podanego pola (x, y).
+     * @param x wspolrzedna x
+     * @param y wspolrzedna y
+     * @return lista
+     */
     public List<int[]> getNeighbors(int x, int y) {
         List<int[]> neighbors = new ArrayList<>();
 
@@ -49,12 +58,23 @@ public class Board implements Serializable {
         return neighbors;
     }
 
+    /**
+     * Sprawdza, czy podane współrzędne (x, y) mieszczą się w granicach planszy.
+     *
+     * @param x
+     * @param y
+     */
     private void checkBounds(int x, int y) {
         if (x < 0 || x >= size || y < 0 || y >= size) {
             throw new IllegalArgumentException("Poza planszą");
         }
     }
 
+    /**
+     * Tworzy i zwraca kopię planszy.
+     *
+     * @return kopia planszy
+     */
     public Board copy() {
         Board copy = new Board(size);
         for (int x = 0; x < size; x++) {

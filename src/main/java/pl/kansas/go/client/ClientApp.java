@@ -9,6 +9,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.function.Consumer;
 
+/**
+ * Klasa reprezentująca aplikację klienta do gry Go.
+ */
 public class ClientApp {
 
     private ObjectOutputStream out;
@@ -18,6 +21,12 @@ public class ClientApp {
     private Consumer<ErrorMessage> onError;
     private Consumer<AssignColorMessage> onAssignColor;
 
+    /**
+     * Nawiązuje połączenie z serwerem gry Go.
+     * @param host host serwera
+     * @param port port serwera
+     * @throws Exception w przypadku błędu podczas nawiązywania połączenia
+     */
     public void connect(String host, int port) throws Exception {
         Socket socket = new Socket(host, port);
 
@@ -30,6 +39,9 @@ public class ClientApp {
         listener.start();
     }
 
+    /**
+     * Nasłuchuje komunikatów z serwera i wywołuje odpowiednie callbacki.
+     */
     private void listen() {
         try {
             while (true) {
@@ -49,6 +61,10 @@ public class ClientApp {
         }
     }
 
+    /**
+     * Wysyła ruch do serwera.
+     * @param move
+     */
     public void sendMove(Move move) {
         try {
             out.writeObject(new MoveMessage(move));

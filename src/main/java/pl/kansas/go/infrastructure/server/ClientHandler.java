@@ -2,7 +2,9 @@ package pl.kansas.go.infrastructure.server;
 
 import pl.kansas.go.application.GameService;
 import pl.kansas.go.domain.exception.InvalidMoveException;
+import pl.kansas.go.domain.model.Game;
 import pl.kansas.go.domain.model.Move;
+import pl.kansas.go.domain.model.MoveType;
 import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.infrastructure.network.*;
 
@@ -13,7 +15,11 @@ import java.net.Socket;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Klasa do obsługi (pojedyńczego) klienta na serwerze Go.
+ */
 public class ClientHandler implements Runnable {
+
 
     private final GameService gameService;
     private final UUID gameId;
@@ -38,6 +44,12 @@ public class ClientHandler implements Runnable {
         this.in = new ObjectInputStream(socket.getInputStream());
     }
 
+    /**
+     * Przypisuje kolor kamienia graczowi i wysyła odpowiednią wiadomość.
+     *
+     * @param stone Kolor kamienia do przypisania graczowi.
+     * @throws IOException W przypadku błędu wejścia/wyjścia podczas wysyłania wiadomości.
+     */
     public void assignStone(Stone stone) throws IOException {
         this.playerStone = stone;
         out.writeObject(new AssignColorMessage(stone));
@@ -59,23 +71,35 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Obsługuje ruch gracza.
+     *
+     * @param moveMsg Wiadomość zawierająca informacje o ruchu gracza.
+     */
     private void handleMove(MoveMessage moveMsg) {
         try {
-            if (playerStone != gameService
-                    .getGame(gameId)
-                    .getCurrentPlayer()) {
+            Game game = gameService.getGame(gameId);
+
+            if (playerStone != game.getCurrentPlayer()) {
                 sendError("Nie twoja kolej");
                 sendBoard();
                 return;
             }
 
-            Move move = new Move(
-                    moveMsg.getMove().getX(),
-                    moveMsg.getMove().getY(),
-                    playerStone
-            );
+            Move incomingMove = moveMsg.getMove();
+            Move moveToServer;
 
-            gameService.makeMove(gameId, move);
+            if (incomingMove.getMoveType() == MoveType.PLAY) {
+                moveToServer = new Move(
+                        incomingMove.getX(),
+                        incomingMove.getY(),
+                        playerStone
+                );
+            } else {
+                moveToServer = new Move(incomingMove.getMoveType(), playerStone);
+            }
+
+            gameService.makeMove(gameId, moveToServer);
             broadcastBoard();
 
         } catch (Exception e) {
@@ -85,13 +109,18 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Wysyła aktualny stan planszy do klienta.
+     */
     private void sendBoard() {
         try {
             var game = gameService.getGame(gameId);
             out.writeObject(
                     new BoardMessage(
                             game.getBoard().copy(),
-                            game.getCurrentPlayer()
+                            game.getCurrentPlayer(),
+                            game.isFinished(),
+                            game.getGameResult()
                     )
             );
             out.flush();
@@ -99,6 +128,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Wysyła wiadomość o błędzie do klienta.
+     *
+     * @param message Treść wiadomości o błędzie.
+     */
     private void sendError(String message) {
         try {
             out.writeObject(new ErrorMessage(message));
@@ -107,13 +141,18 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Rozsyła aktualny stan planszy do wszystkich podłączonych klientów.
+     */
     public void broadcastBoard() {
         try {
             var game = gameService.getGame(gameId);
 
             BoardMessage boardMessage = new BoardMessage(
                     game.getBoard().copy(),
-                    game.getCurrentPlayer()
+                    game.getCurrentPlayer(),
+                    game.isFinished(),
+                    game.getGameResult()
             );
 
             for (ClientHandler client : clients) {

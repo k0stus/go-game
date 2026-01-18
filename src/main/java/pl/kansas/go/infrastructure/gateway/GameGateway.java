@@ -44,4 +44,16 @@ public interface GameGateway {
 
     /** Rejestruje listenera wywoływanego przy zmianie stanu gry */
     void setOnStateChanged(Runnable listener);
+
+    /** Wysyła sygnał pominięcia ruchu */
+    void pass();
+
+    /** Wysyła sygnał poddania się (SURRENDER) */
+    void surrender();
+
+    /** Czy gra jest zakończona? */
+    boolean isFinished();
+
+    /** Pobiera komunikat z wynikiem gry (jeśli zakończona) */
+    String getGameResult();
 }

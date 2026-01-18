@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Serwis zarządzający sesjami gier Go.
+ */
 public class GameService {
 
     private final GameFactory gameFactory;
@@ -16,6 +19,11 @@ public class GameService {
         this.gameFactory = gameFactory;
     }
 
+    /**
+     * Tworzy nową grę i zwraca jej unikalny identyfikator.
+     *
+     * @return UUID nowo utworzonej gry.
+     */
     public UUID createGame() {
         Game game = gameFactory.createDefaultGame();
         GameSession session = new GameSession(game);
@@ -23,15 +31,34 @@ public class GameService {
         return session.getGameId();
     }
 
+    /**
+     * Wykonuje ruch w określonej grze.
+     *
+     * @param gameId Identyfikator gry.
+     * @param move   Ruch do wykonania.
+     */
     public void makeMove(UUID gameId, Move move) {
         GameSession session = getSession(gameId);
         session.getGame().applyMove(move);
     }
 
+    /**
+     * Pobiera obiekt gry na podstawie jej identyfikatora.
+     *
+     * @param gameId Identyfikator gry.
+     * @return Obiekt gry.
+     */
     public Game getGame(UUID gameId) {
         return getSession(gameId).getGame();
     }
 
+    /**
+     * Pobiera sesję gry na podstawie jej identyfikatora.
+     *
+     * @param gameId Identyfikator gry.
+     * @return Sesja gry.
+     * @throws IllegalArgumentException jeśli gra o podanym identyfikatorze nie istnieje.
+     */
     private GameSession getSession(UUID gameId) {
         GameSession session = sessions.get(gameId);
         if (session == null) {

@@ -5,6 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.gui.dto.BoardViewModel;
 import pl.kansas.go.gui.util.CoordinateMapper;
 
@@ -130,4 +131,17 @@ public class GameView extends BorderPane {
         gc.strokeOval(cx - radius, cy - radius,
                 radius * 2, radius * 2);
     }
+
+    public void setOnPassAction(Runnable action) {
+        statusBar.setOnPassAction(action);
+    }
+
+    public void setOnSurrenderAction(Runnable action) {
+        statusBar.setOnSurrenderAction(action);
+    }
+
+    public void setControlsDisabled(boolean disabled) {
+        statusBar.setButtonsDisabled(disabled);
+    }
+
 }

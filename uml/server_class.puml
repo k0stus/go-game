@@ -1,0 +1,156 @@
+@startuml
+title Go Server - Class Diagram
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+
+package "Server" {
+	class ServerApp {
+		{static} PORT: int
+		{static} MAX_PLAYERS: int
+		+main(args: String[]): void
+	}
+
+	class ClientHandler {
+		-gameService: GameService
+		-gameId: UUID
+		-out: ObjectOutputStream
+		-in: ObjectInputStream
+		-clients: List<ClientHandler>
+		-playerStone: Stone
+		+assignStone(stone: Stone): void
+		+broadcastBoard(): void
+	}
+}
+
+package "Application" {
+	class GameService {
+		-gameFactory: GameFactory
+		-sessions: Map<UUID, GameSession>
+		+createGame(): UUID
+		+makeMove(gameId: UUID, move: Move): void
+		+getGame(gameId: UUID): Game
+	}
+
+	class GameFactory {
+		+createDefaultGame(): Game
+	}
+
+	class GameSession {
+		-gameId: UUID
+		-game: Game
+		+getGameId(): UUID
+		+getGame(): Game
+	}
+}
+
+package "Domain" {
+	class Game {
+		-board: Board
+		-currentPlayer: Stone
+		-rules: List<Rule>
+		-history: List<Stone[][]>
+		-finished: boolean
+		-lastMoveType: MoveType
+		-prisonersBlack: int
+		-prisonersWhite: int
+		-gameResultMessage: String
+		+applyMove(move: Move): void
+		+getBoard(): Board
+		+getCurrentPlayer(): Stone
+		+isFinished(): boolean
+		+getGameResult(): String
+	}
+
+	class Board {
+		-size: int
+		-grid: Stone[][]
+		+isEmpty(x: int, y: int): boolean
+		+getStone(x: int, y: int): Stone
+		+placeStone(x: int, y: int, stone: Stone): void
+		+removeStone(x: int, y: int): void
+		+getNeighbors(x: int, y: int): List<int[]>
+		+copy(): Board
+	}
+
+	class Move {
+		-x: int
+		-y: int
+		-stone: Stone
+		-moveType: MoveType
+		+getX(): int
+		+getY(): int
+		+getStone(): Stone
+		+getMoveType(): MoveType
+	}
+
+	enum MoveType {
+		PLAY
+		PASS
+		SURRENDER
+	}
+
+	enum Stone {
+		BLACK
+		WHITE
+		+opposite(): Stone
+	}
+}
+
+package "Network" {
+	interface Message
+
+	class MoveMessage {
+		-move: Move
+		+getMove(): Move
+	}
+
+	class BoardMessage {
+		-board: Board
+		-currentPlayer: Stone
+		-isFinished: boolean
+		-gameResult: String
+		+getBoard(): Board
+		+getCurrentPlayer(): Stone
+		+isFinished(): boolean
+		+getGameResult(): String
+	}
+
+	class AssignColorMessage {
+		-stone: Stone
+		+getStone(): Stone
+	}
+
+	class ErrorMessage {
+		-message: String
+		+getMessage(): String
+	}
+}
+
+ServerApp --> GameService : uses
+ServerApp o-- "*" ClientHandler : spawns
+ClientHandler --> GameService
+ClientHandler --> MoveMessage
+ClientHandler --> BoardMessage
+ClientHandler --> AssignColorMessage
+ClientHandler --> ErrorMessage
+ClientHandler --> Stone
+GameService --> GameFactory : create
+GameService *-- GameSession
+GameSession *-- Game
+Game --> Board
+Game --> MoveType
+Game --> Stone
+Game --> Rule : validates
+Game --> Move : applyMove
+Move --> Stone
+Move --> MoveType
+BoardMessage --> Board
+BoardMessage --> Stone
+MoveMessage --> Move
+AssignColorMessage --> Stone
+MoveMessage ..|> Message
+BoardMessage ..|> Message
+AssignColorMessage ..|> Message
+ErrorMessage ..|> Message
+
+@enduml

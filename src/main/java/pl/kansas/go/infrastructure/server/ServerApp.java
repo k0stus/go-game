@@ -10,9 +10,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Główna klasa serwera aplikacji Go.
+ */
 public class ServerApp {
 
-    private static final int PORT = 5000;
+    private static final int PORT = 5123;
     private static final int MAX_PLAYERS = 2;
 
     public static void main(String[] args) throws IOException {

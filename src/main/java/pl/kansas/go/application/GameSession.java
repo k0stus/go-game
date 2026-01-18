@@ -4,6 +4,9 @@ import pl.kansas.go.domain.model.Game;
 
 import java.util.UUID;
 
+/**
+ * Reprezentuje sesję gry Go, zawierającą unikalny identyfikator oraz instancję gry.
+ */
 public class GameSession {
 
     private final UUID gameId;

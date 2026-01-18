@@ -15,6 +15,26 @@ public class FakeGameGateway implements GameGateway {
         this.listener = r;
     }
 
+    @Override
+    public void pass() {
+
+    }
+
+    @Override
+    public void surrender() {
+
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    @Override
+    public String getGameResult() {
+        return "";
+    }
+
     public void fireStateChanged() {
         if (listener != null) listener.run();
     }

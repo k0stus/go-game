@@ -40,6 +40,24 @@ public class GamePresenter {
         gateway.makeMove(x, y);
     }
 
+    public void pass() {
+        System.out.println("PRESENTER: pass()");
+        gateway.pass();
+    }
+
+    public void surrender() {
+        System.out.println("PRESENTER: surrender()");
+        gateway.surrender();
+    }
+
+    public boolean isFinished() {
+        return gateway.isFinished();
+    }
+
+    public String getGameResult() {
+        return gateway.getGameResult();
+    }
+
     public Stone getCurrentPlayer() {
         System.out.println("PRESENTER: getCurrentPlayer");
         return gateway.getCurrentPlayer();

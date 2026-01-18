@@ -17,8 +17,12 @@ public class GoApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
+        System.out.println("Starting Go GUI Client...");
+
         ClientApp client = new ClientApp();
-        client.connect("localhost", 5000);
+        client.connect("localhost", 5123);
+
+        System.out.println("Connected to Go server.");
 
         NetworkClientGateway gateway =
                 new NetworkClientGateway(client);
@@ -34,6 +38,8 @@ public class GoApplication extends Application {
         stage.setScene(new Scene(view, 800, 800));
         stage.setTitle("Go – klient sieciowy");
         stage.show();
+
+        System.out.println("Go GUI Client started.");
     }
 
     public static void main(String[] args) {

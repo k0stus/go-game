@@ -3,6 +3,7 @@ package pl.kansas.go.infrastructure.gateway;
 import pl.kansas.go.client.ClientApp;
 import pl.kansas.go.domain.model.Board;
 import pl.kansas.go.domain.model.Move;
+import pl.kansas.go.domain.model.MoveType;
 import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.gui.dto.BoardViewModel;
 
@@ -25,6 +26,8 @@ public class NetworkClientGateway implements GameGateway {
     private volatile Stone myStone;
     private volatile Stone currentPlayer;
     private Runnable onStateChanged;
+    private volatile boolean finished;
+    private volatile String gameResult;
 
     /**
      * Tworzy gateway oparty o klienta sieciowego.
@@ -44,6 +47,8 @@ public class NetworkClientGateway implements GameGateway {
             System.out.println("Gateway: Board received.");
             boardViewModel = mapBoard(msg.getBoard());
             currentPlayer = msg.getCurrentPlayer();
+            this.finished = msg.isFinished();
+            this.gameResult = msg.getGameResult();
             notifyStateChanged();
         });
 
@@ -78,6 +83,26 @@ public class NetworkClientGateway implements GameGateway {
     @Override
     public void setOnStateChanged(Runnable listener) {
         this.onStateChanged = listener;
+    }
+
+    @Override
+    public void pass() {
+        client.sendMove(new Move(MoveType.PASS, myStone));
+    }
+
+    @Override
+    public void surrender() {
+        client.sendMove(new Move(MoveType.SURRENDER, myStone));
+    }
+
+    @Override
+    public boolean isFinished() {
+        return finished;
+    }
+
+    @Override
+    public String getGameResult() {
+        return gameResult;
     }
 
     private void notifyStateChanged() {

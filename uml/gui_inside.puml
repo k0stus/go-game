@@ -1,0 +1,20 @@
+@startuml
+actor Player
+participant "GameView\n(JavaFX)" as View
+participant "GameController" as Controller
+participant "GamePresenter" as Presenter
+participant "GameGateway" as Gateway
+participant "Server" as Server
+
+Player -> View : klik na planszy
+View -> Controller : onCellClicked(x,y)
+Controller -> Presenter : makeMove(x,y)
+Presenter -> Gateway : makeMove(x,y)
+Gateway -> Server : MoveMessage
+
+Server -> Gateway : BoardMessage
+Gateway -> Presenter : onStateChanged()
+Presenter -> Controller : refresh()
+Controller -> View : updateBoard()
+Controller -> View : setStatus()
+@enduml

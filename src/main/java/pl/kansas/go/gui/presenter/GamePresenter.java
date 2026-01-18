@@ -42,7 +42,16 @@ public class GamePresenter {
 
     public Stone getCurrentPlayer() {
         System.out.println("PRESENTER: getCurrentPlayer");
+        return gateway.getCurrentPlayer();
+    }
+
+    public Stone getMyStone() {
         return gateway.getMyStone();
+    }
+
+    public boolean isMyTurn() {
+        return getMyStone() != null
+                && getMyStone() == getCurrentPlayer();
     }
 
     /**

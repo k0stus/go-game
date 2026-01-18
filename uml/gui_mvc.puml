@@ -1,0 +1,29 @@
+@startuml
+package GUI {
+  [GameView]
+  [GameController]
+  [GamePresenter]
+}
+
+package Application {
+  [GameService]
+}
+
+package Infrastructure {
+  [NetworkClientGateway]
+  [ClientApp]
+}
+
+package Domain {
+  [Game]
+  [Board]
+}
+
+GameView --> GameController
+GameController --> GamePresenter
+GamePresenter --> NetworkClientGateway
+NetworkClientGateway --> ClientApp
+ClientApp --> GameService
+GameService --> Game
+Game --> Board
+@enduml

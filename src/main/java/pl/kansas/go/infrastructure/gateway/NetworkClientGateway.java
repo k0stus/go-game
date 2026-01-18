@@ -23,6 +23,7 @@ public class NetworkClientGateway implements GameGateway {
 
     private volatile BoardViewModel boardViewModel;
     private volatile Stone myStone;
+    private volatile Stone currentPlayer;
     private Runnable onStateChanged;
 
     /**
@@ -42,6 +43,7 @@ public class NetworkClientGateway implements GameGateway {
         client.onBoard(msg -> {
             System.out.println("Gateway: Board received.");
             boardViewModel = mapBoard(msg.getBoard());
+            currentPlayer = msg.getCurrentPlayer();
             notifyStateChanged();
         });
 
@@ -66,6 +68,11 @@ public class NetworkClientGateway implements GameGateway {
     @Override
     public Stone getMyStone() {
         return myStone;
+    }
+
+    @Override
+    public Stone getCurrentPlayer() {
+        return currentPlayer;
     }
 
     @Override

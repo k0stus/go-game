@@ -12,20 +12,36 @@ import pl.kansas.go.gui.dto.BoardViewModel;
 public class GamePresenter {
 
     private final GameGateway gateway;
+    private Runnable onStateChanged;
 
     public GamePresenter(GameGateway gateway) {
         this.gateway = gateway;
+        gateway.setOnStateChanged(this::onGameStateChanged);
+    }
+
+    public void setOnStateChanged(Runnable r) {
+        this.onStateChanged = r;
+    }
+
+    private void onGameStateChanged() {
+        System.out.println("[PRESENTER] game state changed");
+        if (onStateChanged != null) {
+            onStateChanged.run();
+        }
     }
 
     public BoardViewModel getBoardViewModel() {
+        System.out.println("PRESENTER: getBoardViewModel()");
         return gateway.getBoardViewModel();
     }
 
     public void makeMove(int x, int y) {
+        System.out.println("PRESENTER: makeMove()");
         gateway.makeMove(x, y);
     }
 
     public Stone getCurrentPlayer() {
+        System.out.println("PRESENTER: getCurrentPlayer");
         return gateway.getMyStone();
     }
 

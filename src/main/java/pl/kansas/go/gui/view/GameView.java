@@ -65,6 +65,7 @@ public class GameView extends BorderPane {
      * @param board model widoku planszy
      */
     public void updateBoard(BoardViewModel board) {
+        System.out.println("GAMEVIEW: updateBoard()");
         this.mapper = new CoordinateMapper(
                 board.getSize(),
                 CANVAS_SIZE,

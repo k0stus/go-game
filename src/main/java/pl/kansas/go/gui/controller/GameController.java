@@ -17,8 +17,13 @@ public class GameController {
         this.presenter = presenter;
         this.view = view;
 
+        presenter.setOnStateChanged(this::refresh);
+
         bindViewEvents();
-        refresh();
+        if (presenter.hasBoard()) {
+            refresh();
+        }
+
     }
 
     private void bindViewEvents() {
@@ -35,7 +40,9 @@ public class GameController {
     }
 
     private void refresh() {
+        System.out.println("CONTROLLER: refresh()");
         if (presenter.hasBoard()) {
+            System.out.println("CONTROLLER: presenter.hasBoard()");
             view.updateBoard(presenter.getBoardViewModel());
         }
         view.setStatus("Ruch gracza: " + presenter.getCurrentPlayer());

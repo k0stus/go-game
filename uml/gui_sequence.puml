@@ -1,0 +1,23 @@
+@startuml
+participant Server
+participant ClientApp
+participant NetworkClientGateway
+participant GamePresenter
+participant GameController
+participant GameView
+participant StatusBar
+
+Server -> ClientApp : AssignColorMessage
+ClientApp -> NetworkClientGateway : onAssignColor()
+NetworkClientGateway -> GamePresenter : notifyStateChanged()
+
+Server -> ClientApp : BoardMessage
+ClientApp -> NetworkClientGateway : onBoard()
+NetworkClientGateway -> GamePresenter : notifyStateChanged()
+
+GamePresenter -> GameController : onStateChanged()
+GameController -> GameController : Platform.runLater()
+
+GameController -> GameView : updateBoard(BoardViewModel)
+GameController -> StatusBar : setText("Ruch gracza: ...")
+@enduml

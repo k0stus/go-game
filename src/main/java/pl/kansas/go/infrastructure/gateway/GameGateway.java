@@ -36,4 +36,12 @@ public interface GameGateway {
      * @return kolor gracza
      */
     Stone getMyStone();
+
+    /**
+     * Zwraca kamień gracza, którego jest ruch
+     */
+    Stone getCurrentPlayer();
+
+    /** Rejestruje listenera wywoływanego przy zmianie stanu gry */
+    void setOnStateChanged(Runnable listener);
 }

@@ -23,6 +23,8 @@ public class NetworkClientGateway implements GameGateway {
 
     private volatile BoardViewModel boardViewModel;
     private volatile Stone myStone;
+    private volatile Stone currentPlayer;
+    private Runnable onStateChanged;
 
     /**
      * Tworzy gateway oparty o klienta sieciowego.
@@ -32,13 +34,18 @@ public class NetworkClientGateway implements GameGateway {
     public NetworkClientGateway(ClientApp client) {
         this.client = client;
 
-        client.onAssignColor(msg ->
-                myStone = msg.getStone()
-        );
+        client.onAssignColor(msg -> {
+            System.out.println("Gateway: Assing Color received: " + msg.getStone());
+            myStone = msg.getStone();
+            notifyStateChanged();
+        });
 
-        client.onBoard(msg ->
-                boardViewModel = mapBoard(msg.getBoard())
-        );
+        client.onBoard(msg -> {
+            System.out.println("Gateway: Board received.");
+            boardViewModel = mapBoard(msg.getBoard());
+            currentPlayer = msg.getCurrentPlayer();
+            notifyStateChanged();
+        });
 
         client.onError(msg ->
                 System.err.println("Błąd z serwera: " + msg.getMessage())
@@ -61,6 +68,22 @@ public class NetworkClientGateway implements GameGateway {
     @Override
     public Stone getMyStone() {
         return myStone;
+    }
+
+    @Override
+    public Stone getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    @Override
+    public void setOnStateChanged(Runnable listener) {
+        this.onStateChanged = listener;
+    }
+
+    private void notifyStateChanged() {
+        if (onStateChanged != null) {
+            onStateChanged.run();
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package pl.kansas.go.gui.controller;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import pl.kansas.go.gui.presenter.GamePresenter;
 import pl.kansas.go.gui.view.GameView;
@@ -17,8 +18,13 @@ public class GameController {
         this.presenter = presenter;
         this.view = view;
 
+        presenter.setOnStateChanged(this::refresh);
+
         bindViewEvents();
-        refresh();
+        if (presenter.hasBoard()) {
+            refresh();
+        }
+
     }
 
     private void bindViewEvents() {
@@ -34,12 +40,18 @@ public class GameController {
         }
     }
 
-    private void refresh() {
-        if (presenter.hasBoard()) {
-            view.updateBoard(presenter.getBoardViewModel());
-        }
-        view.setStatus("Ruch gracza: " + presenter.getCurrentPlayer());
+    public void refresh() {
+        Platform.runLater(() -> {
+            System.out.println("CONTROLLER: refresh()");
+
+            if (presenter.hasBoard()) {
+                view.updateBoard(presenter.getBoardViewModel());
+            }
+
+            view.setStatus("Ruch gracza: " + presenter.getCurrentPlayer());
+        });
     }
+
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);

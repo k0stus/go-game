@@ -1,0 +1,55 @@
+@startuml
+package "gui" {
+
+  package controller {
+    class GameController {
+      - GamePresenter presenter
+      - GameView view
+      + refresh()
+    }
+
+    class ToolbarController
+  }
+
+  package presenter {
+    class GamePresenter {
+      - GameGateway gateway
+      - Runnable onStateChanged
+      + setOnStateChanged(Runnable)
+      + getBoardViewModel() : BoardViewModel
+      + getCurrentPlayer() : Stone
+      + getMyStone() : Stone
+      + isMyTurn() : boolean
+      + makeMove(int, int)
+      + hasBoard() : boolean
+    }
+  }
+
+  package view {
+    class GameView {
+      - BoardCanvas boardCanvas
+      - StatusBar statusBar
+      + updateBoard(BoardViewModel)
+      + setStatus(String)
+    }
+
+    class BoardCanvas {
+      + draw(BoardViewModel)
+    }
+
+    class StatusBar {
+      + showMessage(String)
+    }
+  }
+
+  package dto {
+    class BoardViewModel
+  }
+}
+
+GameController --> GamePresenter
+GameController --> GameView
+GameView --> BoardCanvas
+GameView --> StatusBar
+GamePresenter --> BoardViewModel
+@enduml

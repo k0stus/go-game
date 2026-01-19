@@ -2,8 +2,10 @@ package pl.kansas.go.application;
 
 import pl.kansas.go.domain.model.Board;
 import pl.kansas.go.domain.model.Game;
+import pl.kansas.go.domain.rules.KoRule;
 import pl.kansas.go.domain.rules.PlacementRule;
 import pl.kansas.go.domain.rules.Rule;
+import pl.kansas.go.domain.rules.SuicideRule;
 
 import java.util.List;
 
@@ -21,7 +23,9 @@ public class GameFactory {
         Board board = new Board(19);
 
         List<Rule> rules = List.of(
-                new PlacementRule()
+                new PlacementRule(),
+                new SuicideRule(),
+                new KoRule()
         );
 
         return new Game(board, rules);

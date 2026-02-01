@@ -11,14 +11,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Reprezentuje stan gry Go, w tym planszę, aktualnego gracza oraz zestaw reguł gry.
+ * Reprezentuje stan gry Go, w tym planszę, aktualnego gracza oraz zestaw reguł
+ * gry.
  */
 public class Game implements Serializable {
 
     private final Board board;
     private Stone currentPlayer;
     private final List<Rule> rules;
-    private final List<Stone[][]> history = new ArrayList<>();
+    private final List<Move> moveHistory = new ArrayList<>();
+    private final List<Stone[][]> boardSnapshots = new ArrayList<>();
     private boolean finished = false;
     private MoveType lastMoveType = null;
     private int prisonersBlack = 0;
@@ -38,8 +40,14 @@ public class Game implements Serializable {
     public Stone getCurrentPlayer() {
         return currentPlayer;
     }
-    public int getPrisonersBlack() { return prisonersBlack; }
-    public int getPrisonersWhite() { return prisonersWhite; }
+
+    public int getPrisonersBlack() {
+        return prisonersBlack;
+    }
+
+    public int getPrisonersWhite() {
+        return prisonersWhite;
+    }
 
     public void applyMove(Move move) {
         // initial cheks
@@ -49,8 +57,7 @@ public class Game implements Serializable {
 
         if (move.getStone() != currentPlayer) {
             throw new IllegalStateException(
-                    "Teraz ruch gracza: " + currentPlayer
-            );
+                    "Teraz ruch gracza: " + currentPlayer);
         }
 
         // pass and surrender handling
@@ -59,25 +66,25 @@ public class Game implements Serializable {
             this.gameResultMessage = String.format(
                     "Gracz %s poddał się.\nWygrywa %s!",
                     move.getStone(),
-                    move.getStone().opposite()
-            );
+                    move.getStone().opposite());
             System.out.println("Gracz " + move.getStone() + " poddał się.");
-            return; // game finished, move handled
+            recordMove(move);
+            return;
         }
 
         if (move.getMoveType() == MoveType.PASS) {
+            recordMove(move);
             // double pass = finish game
             if (lastMoveType == MoveType.PASS) {
                 this.getGameResult();
                 finished = true;
-                this.gameResultMessage = calculateScoreResult(); // Wywołujemy nową metodę prywatną
+                this.gameResultMessage = calculateScoreResult();
                 System.out.println("Koniec gry (2x Pass). Wynik: " + this.gameResultMessage);
                 System.out.println("Obaj gracze spasowali. Koniec gry.");
             } else {
                 lastMoveType = MoveType.PASS;
                 currentPlayer = currentPlayer.opposite();
             }
-            // end of handling move for pass
             return;
         }
 
@@ -91,23 +98,26 @@ public class Game implements Serializable {
         board.placeStone(
                 move.getX(),
                 move.getY(),
-                move.getStone()
-        );
+                move.getStone());
 
         int capturedCount = ChainAnalyzer.removeDeadOpponentStones(
                 board,
                 move.getX(),
                 move.getY(),
-                currentPlayer.opposite()
-        );
+                currentPlayer.opposite());
 
         if (capturedCount > 0) {
             addPrisoners(currentPlayer, capturedCount);
         }
 
-        saveHistory();
+        recordMove(move);
 
         currentPlayer = currentPlayer.opposite();
+    }
+
+    private void recordMove(Move move) {
+        saveBoardSnapshot();
+        moveHistory.add(move);
     }
 
     private String calculateScoreResult() {
@@ -120,8 +130,7 @@ public class Game implements Serializable {
                 "Koniec Gry!\nCZARNY: %d (Teren: %d, Jeńcy: %d)\nBIAŁY: %d (Teren: %d, Jeńcy: %d)\nZwycięzca: %s",
                 totalBlack, territoryScore.get(Stone.BLACK), prisonersBlack,
                 totalWhite, territoryScore.get(Stone.WHITE), prisonersWhite,
-                (totalBlack > totalWhite ? "CZARNY" : (totalWhite > totalBlack ? "BIAŁY" : "REMIS"))
-        );
+                (totalBlack > totalWhite ? "CZARNY" : (totalWhite > totalBlack ? "BIAŁY" : "REMIS")));
     }
 
     private void addPrisoners(Stone capturer, int count) {
@@ -136,14 +145,12 @@ public class Game implements Serializable {
         return this.gameResultMessage;
     }
 
-
-
     public boolean isFinished() {
         return finished;
     }
 
     public boolean isBoardStateRepeated(Stone[][] newGrid) {
-        for (Stone[][] historicGrid : history) {
+        for (Stone[][] historicGrid : boardSnapshots) {
             if (Arrays.deepEquals(historicGrid, newGrid)) {
                 return true;
             }
@@ -151,7 +158,11 @@ public class Game implements Serializable {
         return false;
     }
 
-    private void saveHistory() {
+    public List<Move> getMoveHistory() {
+        return new ArrayList<>(moveHistory);
+    }
+
+    private void saveBoardSnapshot() {
         int size = board.getSize();
         Stone[][] snapshot = new Stone[size][size];
 
@@ -160,6 +171,6 @@ public class Game implements Serializable {
                 snapshot[x][y] = board.getStone(x, y);
             }
         }
-        history.add(snapshot);
+        boardSnapshots.add(snapshot);
     }
 }

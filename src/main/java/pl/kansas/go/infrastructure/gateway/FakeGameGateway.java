@@ -1,7 +1,12 @@
 package pl.kansas.go.infrastructure.gateway;
 
+import pl.kansas.go.domain.model.Move;
 import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.gui.dto.BoardViewModel;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 public class FakeGameGateway implements GameGateway {
 
@@ -36,7 +41,8 @@ public class FakeGameGateway implements GameGateway {
     }
 
     public void fireStateChanged() {
-        if (listener != null) listener.run();
+        if (listener != null)
+            listener.run();
     }
 
     @Override
@@ -46,7 +52,7 @@ public class FakeGameGateway implements GameGateway {
 
     @Override
     public void makeMove(int x, int y) {
-        // no-op
+
     }
 
     @Override
@@ -58,5 +64,14 @@ public class FakeGameGateway implements GameGateway {
     public Stone getCurrentPlayer() {
         return currentPlayer;
     }
-}
 
+    @Override
+    public List<UUID> fetchGameList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Move> fetchGameMoves(UUID gameId) {
+        return Collections.emptyList();
+    }
+}

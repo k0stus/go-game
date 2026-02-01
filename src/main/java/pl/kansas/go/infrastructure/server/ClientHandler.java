@@ -1,12 +1,12 @@
 package pl.kansas.go.infrastructure.server;
 
 import pl.kansas.go.application.GameService;
-import pl.kansas.go.domain.exception.InvalidMoveException;
 import pl.kansas.go.domain.model.Game;
 import pl.kansas.go.domain.model.Move;
 import pl.kansas.go.domain.model.MoveType;
 import pl.kansas.go.domain.model.Stone;
 import pl.kansas.go.infrastructure.network.*;
+import pl.kansas.go.infrastructure.server.bot.BotPlayer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,15 +17,16 @@ import java.util.UUID;
 
 /**
  * Klasa do obsługi (pojedyńczego) klienta na serwerze Go.
+ * Obsługuje również ruchy bota.
  */
 public class ClientHandler implements Runnable {
-
 
     private final GameService gameService;
     private final UUID gameId;
     private final ObjectOutputStream out;
     private final ObjectInputStream in;
     private final List<ClientHandler> clients;
+    private final BotPlayer bot;
 
     private Stone playerStone;
 
@@ -33,11 +34,13 @@ public class ClientHandler implements Runnable {
             Socket socket,
             GameService gameService,
             UUID gameId,
-            List<ClientHandler> clients
+            List<ClientHandler> clients,
+            BotPlayer bot
     ) throws IOException {
         this.gameService = gameService;
         this.gameId = gameId;
         this.clients = clients;
+        this.bot = bot;
 
         this.out = new ObjectOutputStream(socket.getOutputStream());
         this.out.flush();
@@ -46,9 +49,6 @@ public class ClientHandler implements Runnable {
 
     /**
      * Przypisuje kolor kamienia graczowi i wysyła odpowiednią wiadomość.
-     *
-     * @param stone Kolor kamienia do przypisania graczowi.
-     * @throws IOException W przypadku błędu wejścia/wyjścia podczas wysyłania wiadomości.
      */
     public void assignStone(Stone stone) throws IOException {
         this.playerStone = stone;
@@ -72,9 +72,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Obsługuje ruch gracza.
-     *
-     * @param moveMsg Wiadomość zawierająca informacje o ruchu gracza.
+     * Obsługuje ruch gracza oraz ewentualny ruch bota.
      */
     private void handleMove(MoveMessage moveMsg) {
         try {
@@ -99,13 +97,21 @@ public class ClientHandler implements Runnable {
                 moveToServer = new Move(incomingMove.getMoveType(), playerStone);
             }
 
+            // Ruch gracza
             gameService.makeMove(gameId, moveToServer);
             broadcastBoard();
+
+            // Ruch bota (jeśli jego kolej)
+            if (!game.isFinished()
+                    && game.getCurrentPlayer() == bot.getStone()) {
+
+                bot.onTurn(gameService, gameId);
+                broadcastBoard();
+            }
 
         } catch (Exception e) {
             sendError(e.getMessage());
             sendBoard();
-
         }
     }
 
@@ -130,8 +136,6 @@ public class ClientHandler implements Runnable {
 
     /**
      * Wysyła wiadomość o błędzie do klienta.
-     *
-     * @param message Treść wiadomości o błędzie.
      */
     private void sendError(String message) {
         try {

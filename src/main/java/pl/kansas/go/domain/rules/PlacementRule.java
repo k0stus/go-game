@@ -12,4 +12,9 @@ public class PlacementRule implements Rule {
             throw new InvalidMoveException("Pole jest już zajęte");
         }
     }
+
+    @Override
+    public boolean check(Game game, Move move) {
+        return game.getBoard().isEmpty(move.getX(), move.getY());
+    }
 }

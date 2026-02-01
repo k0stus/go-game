@@ -28,4 +28,22 @@ public class SuicideRule implements Rule {
             throw new InvalidMoveException("Ruch samobójczy jest niedozwolony");
         }
     }
+
+    @Override
+    public boolean check(Game game, Move move) {
+
+        // use copy of the board to simulate the move
+        Board simulation = game.getBoard().copy();
+        simulation.placeStone(move.getX(), move.getY(), move.getStone());
+
+
+        Stone opponent = move.getStone().opposite();
+        int captured = ChainAnalyzer.removeDeadOpponentStones(simulation, move.getX(), move.getY(), opponent);
+
+        if (captured > 0) {
+            return true;
+        }
+
+        return ChainAnalyzer.hasLiberties(simulation, move.getX(), move.getY());
+    }
 }

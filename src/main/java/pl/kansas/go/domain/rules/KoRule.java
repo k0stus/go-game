@@ -30,6 +30,23 @@ public class KoRule implements Rule {
         }
     }
 
+    @Override
+    public boolean check(Game game, Move move) {
+        Board simulation = game.getBoard().copy();
+        simulation.placeStone(move.getX(), move.getY(), move.getStone());
+
+        ChainAnalyzer.removeDeadOpponentStones(
+                simulation,
+                move.getX(),
+                move.getY(),
+                move.getStone().opposite()
+        );
+
+        Stone[][] simulatedGrid = extractGrid(simulation);
+
+        return !game.isBoardStateRepeated(simulatedGrid);
+    }
+
     /**
      * Wyodrębnia siatkę kamieni ze stanu planszy.
      * @param board

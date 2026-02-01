@@ -162,4 +162,21 @@ public class Game implements Serializable {
         }
         history.add(snapshot);
     }
+
+    public List<Move> getLegalMoves(Stone stone) {
+        int size = board.getSize();
+        List<Move> legalMoves = new ArrayList<>();
+
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                for (Rule rule : rules) {
+                    Move move = new Move(x, y, stone);
+                    if (rule.check(this, move)) {
+                        legalMoves.add(move);
+                    }
+                }
+            }
+        }
+        return legalMoves;
+    }
 }

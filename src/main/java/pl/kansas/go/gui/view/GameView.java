@@ -10,6 +10,8 @@ import pl.kansas.go.gui.dto.BoardViewModel;
 import pl.kansas.go.gui.util.CoordinateMapper;
 
 import java.util.function.BiConsumer;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 /**
  * Widok gry Go odpowiedzialny wyłącznie za renderowanie
@@ -22,18 +24,82 @@ public class GameView extends BorderPane {
 
     private final Canvas canvas;
     private final StatusBar statusBar;
+    private final MenuBar menuBar;
+    private final ToolBar toolBar;
+    private final Button btnPrev;
+    private final Button btnNext;
 
     private BiConsumer<Integer, Integer> onCellClicked;
+    private Runnable onReplayClicked;
+    private Runnable onNextClicked;
+    private Runnable onPrevClicked;
     private CoordinateMapper mapper;
 
     public GameView() {
         this.canvas = new Canvas(CANVAS_SIZE, CANVAS_SIZE);
         this.statusBar = new StatusBar();
+        this.menuBar = createMenuBar();
+        this.toolBar = createToolBar();
+        this.btnPrev = (Button) toolBar.getItems().get(0);
+        this.btnNext = (Button) toolBar.getItems().get(1);
 
+        VBox topContainer = new VBox(menuBar, toolBar);
+        setTop(topContainer);
         setCenter(canvas);
         setBottom(statusBar);
 
+        toolBar.setVisible(false);
+        toolBar.setManaged(false);
+
         registerMouseHandler();
+    }
+
+    private MenuBar createMenuBar() {
+        MenuBar menu = new MenuBar();
+        Menu gameMenu = new Menu("Gra");
+        MenuItem replayItem = new MenuItem("Odtwórz historię");
+        replayItem.setOnAction(e -> {
+            if (onReplayClicked != null)
+                onReplayClicked.run();
+        });
+        gameMenu.getItems().add(replayItem);
+        menu.getMenus().add(gameMenu);
+        return menu;
+    }
+
+    private ToolBar createToolBar() {
+        Button prev = new Button("Poprzedni");
+        Button next = new Button("Następny");
+
+        prev.setOnAction(e -> {
+            if (onPrevClicked != null)
+                onPrevClicked.run();
+        });
+        next.setOnAction(e -> {
+            if (onNextClicked != null)
+                onNextClicked.run();
+        });
+
+        return new ToolBar(prev, next);
+    }
+
+    public void setOnReplayClicked(Runnable handler) {
+        this.onReplayClicked = handler;
+    }
+
+    public void setOnNextClicked(Runnable handler) {
+        this.onNextClicked = handler;
+    }
+
+    public void setOnPrevClicked(Runnable handler) {
+        this.onPrevClicked = handler;
+    }
+
+    public void setReplayMode(boolean replayMode) {
+        toolBar.setVisible(replayMode);
+        toolBar.setManaged(replayMode);
+        statusBar.setVisible(!replayMode);
+        statusBar.setManaged(!replayMode);
     }
 
     /**
@@ -70,8 +136,7 @@ public class GameView extends BorderPane {
         this.mapper = new CoordinateMapper(
                 board.getSize(),
                 CANVAS_SIZE,
-                PADDING
-        );
+                PADDING);
         drawBoard(board);
     }
 
@@ -97,12 +162,10 @@ public class GameView extends BorderPane {
             double p = mapper.toPixel(i);
             gc.strokeLine(
                     mapper.toPixel(0), p,
-                    mapper.toPixel(size - 1), p
-            );
+                    mapper.toPixel(size - 1), p);
             gc.strokeLine(
                     p, mapper.toPixel(0),
-                    p, mapper.toPixel(size - 1)
-            );
+                    p, mapper.toPixel(size - 1));
         }
 
         for (int x = 0; x < size; x++) {
@@ -116,11 +179,12 @@ public class GameView extends BorderPane {
     }
 
     private void drawStone(GraphicsContext gc,
-                           BoardViewModel.Cell cell,
-                           double cx,
-                           double cy,
-                           double radius) {
-        if (cell == BoardViewModel.Cell.EMPTY) return;
+            BoardViewModel.Cell cell,
+            double cx,
+            double cy,
+            double radius) {
+        if (cell == BoardViewModel.Cell.EMPTY)
+            return;
 
         gc.setFill(cell == BoardViewModel.Cell.BLACK
                 ? Color.BLACK

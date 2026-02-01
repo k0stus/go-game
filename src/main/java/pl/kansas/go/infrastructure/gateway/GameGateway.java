@@ -9,8 +9,8 @@ import pl.kansas.go.gui.dto.BoardViewModel;
  * <p>
  * Implementacje:
  * <ul>
- *   <li>lokalna (GameService)</li>
- *   <li>sieciowa (NetworkClientGateway)</li>
+ * <li>lokalna (GameService)</li>
+ * <li>sieciowa (NetworkClientGateway)</li>
  * </ul>
  */
 public interface GameGateway {
@@ -55,5 +55,11 @@ public interface GameGateway {
     boolean isFinished();
 
     /** Pobiera komunikat z wynikiem gry (jeśli zakończona) */
+    /** Pobiera komunikat z wynikiem gry (jeśli zakończona) */
     String getGameResult();
+
+    // History methods
+    java.util.List<java.util.UUID> fetchGameList();
+
+    java.util.List<pl.kansas.go.domain.model.Move> fetchGameMoves(java.util.UUID gameId);
 }

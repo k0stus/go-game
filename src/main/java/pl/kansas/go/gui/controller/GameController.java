@@ -24,6 +24,8 @@ public class GameController {
         presenter.setOnStateChanged(this::refresh);
 
         bindViewEvents();
+        bindReplayEvents();
+
         if (presenter.hasBoard()) {
             refresh();
         }
@@ -36,6 +38,36 @@ public class GameController {
 
         view.setOnPassAction(this::handlePass);
         view.setOnSurrenderAction(this::handleSurrender);
+    }
+
+    private void bindReplayEvents() {
+        view.setOnReplayClicked(this::handleReplayClicked);
+        view.setOnNextClicked(this::handleNextClicked);
+        view.setOnPrevClicked(this::handlePrevClicked);
+    }
+
+    private void handleReplayClicked() {
+        var games = presenter.fetchGameList();
+        if (games.isEmpty()) {
+            showError("Brak zapisanych gier lub błąd połączenia.");
+            return;
+        }
+
+        pl.kansas.go.gui.view.HistorySelectionDialog dialog = new pl.kansas.go.gui.view.HistorySelectionDialog(games);
+
+        dialog.showAndWait().ifPresent(gameId -> {
+            presenter.startReplay(gameId);
+            view.setReplayMode(true);
+            refresh();
+        });
+    }
+
+    private void handleNextClicked() {
+        presenter.nextMove();
+    }
+
+    private void handlePrevClicked() {
+        presenter.prevMove();
     }
 
     private void handleCellClick(int x, int y) {
@@ -68,7 +100,6 @@ public class GameController {
         alert.setTitle("Koniec Gry");
         alert.setHeaderText("Wynik rozgrywki");
 
-
         TextArea textArea = new TextArea(resultMessage);
         textArea.setEditable(false);
         textArea.setWrapText(true);
@@ -98,10 +129,15 @@ public class GameController {
                 showGameResult(presenter.getGameResult());
             }
 
-            view.setStatus("Ruch gracza: " + presenter.getCurrentPlayer());
+            view.setStatus(presenter.isReplayMode()
+                    ? "Tryb odtwarzania historii"
+                    : "Ruch gracza: " + presenter.getCurrentPlayer());
+
+            if (presenter.isReplayMode()) {
+                view.setControlsDisabled(true); // Disable play buttons
+            }
         });
     }
-
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);

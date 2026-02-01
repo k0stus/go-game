@@ -1,5 +1,8 @@
 package pl.kansas.go.client.bot;
 
+import pl.kansas.go.client.bot.strategy.HeuristicMoveStrategy;
+import pl.kansas.go.client.bot.strategy.MoveStrategy;
+import pl.kansas.go.client.bot.strategy.RandomMoveStrategy;
 import pl.kansas.go.domain.model.Move;
 
 /**
@@ -8,7 +11,7 @@ import pl.kansas.go.domain.model.Move;
 public class BotController {
 
     private final BotGameGateway gateway;
-    private final RandomMoveStrategy strategy = new RandomMoveStrategy();
+    private final MoveStrategy strategy = new HeuristicMoveStrategy();
 
     public BotController(BotGameGateway gateway) {
         this.gateway = gateway;

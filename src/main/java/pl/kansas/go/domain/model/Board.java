@@ -84,4 +84,28 @@ public class Board implements Serializable {
         }
         return copy;
     }
+
+    /**
+     * Zwraca listę potencjalnych ruchów (na pustych polach).
+     * Pełna walidacja odbywa się po stronie serwera.
+     */
+    public List<Move> getLegalMoves(Stone stone) {
+        List<Move> moves = new ArrayList<>();
+
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                if (grid[x][y] == null) {
+                    moves.add(new Move(x, y, stone));
+                }
+            }
+        }
+
+        // Jeżeli nie ma żadnych ruchów – PASS
+        if (moves.isEmpty()) {
+            moves.add(new Move(MoveType.PASS, stone));
+        }
+
+        return moves;
+    }
+
 }

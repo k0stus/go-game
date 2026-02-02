@@ -173,4 +173,57 @@ public class Game implements Serializable {
         }
         boardSnapshots.add(snapshot);
     }
+
+    public List<Move> getLegalMoves(Stone stone) {
+        List<Move> legalMoves = new ArrayList<>();
+        int size = board.getSize();
+
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                if (!board.isEmpty(x, y)) {
+                    continue;
+                }
+
+                Move move = new Move(x, y, stone);
+
+                if (isMoveLegal(move)) {
+                    legalMoves.add(move);
+                }
+            }
+        }
+
+        // zawsze dopuszczamy PASS
+        legalMoves.add(new Move(MoveType.PASS, stone));
+
+        return legalMoves;
+    }
+
+    private boolean isMoveLegal(Move move) {
+        try {
+            Game simulation = this.copy();
+            simulation.applyMove(move);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Game copy() {
+        Board boardCopy = this.board.copy();
+        Game gameCopy = new Game(boardCopy, this.rules);
+
+        gameCopy.currentPlayer = this.currentPlayer;
+        gameCopy.finished = this.finished;
+        gameCopy.lastMoveType = this.lastMoveType;
+        gameCopy.prisonersBlack = this.prisonersBlack;
+        gameCopy.prisonersWhite = this.prisonersWhite;
+        gameCopy.gameResultMessage = this.gameResultMessage;
+
+        gameCopy.moveHistory.addAll(this.moveHistory);
+        gameCopy.boardSnapshots.addAll(this.boardSnapshots);
+
+        return gameCopy;
+    }
+
+
 }
